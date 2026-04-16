@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>江浙沪米其林餐厅地图</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      letter-spacing: 1px;
+    }
+
+    .header-stats {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .filter-bar {
+      background: #fff;
+      padding: 10px 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-btn {
+      padding: 6px 14px;
+      border: 1px solid #ddd;
+      background: #fff;
+      border-radius: 16px;
+      font-size: 13px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      border-color: #c9a96e;
+      color: #c9a96e;
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, #c9a96e, #8b6914);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    #map {
+      flex: 1;
+      width: 100%;
+      position: relative;
+    }
+
+    /* 确保地图控件显示 */
+    .amap-zoomcontrol {
+      position: absolute !important;
+      right: 10px !important;
+      bottom: 40px !important;
+    }
+
+    .amap-toolbar {
+      position: absolute !important;
+      right: 10px !important;
+      bottom: 40px !important;
+    }
+
+    .amap-scale {
+      position: absolute !important;
+      left: 10px !important;
+      bottom: 10px !important;
+    }
+
+    .map-hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 13px;
+      z-index: 999;
+    }
+
+    /* 自定义信息窗体样式 */
+    .amap-info-content {
+      padding: 0 !important;
+    }
+
+    .info-window {
+      width: 280px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .info-window-header {
+      position: relative;
+      height: 140px;
+      overflow: hidden;
+    }
+
+    .info-window-header img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .info-window-body {
+      padding: 14px;
+    }
+
+    .info-window-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 2px;
+    }
+
+    .info-window-subtitle {
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 10px;
+    }
+
+    .info-window-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .info-badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .badge-star {
+      background: linear-gradient(135deg, #c9a96e, #8b6914);
+      color: #fff;
+    }
+
+    .badge-star-2 {
+      background: linear-gradient(135deg, #a0a0a0, #666);
+    }
+
+    .badge-star-1 {
+      background: linear-gradient(135deg, #cd7f32, #8b4513);
+    }
+
+    .badge-city {
+      background: #e8f4ff;
+      color: #1989fa;
+    }
+
+    .badge-type {
+      background: #fff7e6;
+      color: #fa8c16;
+    }
+
+    .info-window-row {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+
+    .info-window-row strong {
+      color: #333;
+    }
+
+    .address-link {
+      color: #1989fa;
+      cursor: pointer;
+    }
+
+    .address-link:hover {
+      text-decoration: underline;
+    }
+
+    .info-window-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .info-window-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      display: block;
+    }
+
+    .info-window-btn-primary {
+      background: linear-gradient(135deg, #c9a96e, #8b6914);
+      color: #fff;
+    }
+
+    .info-window-btn-secondary {
+      background: #f5f5f5;
+      color: #666;
+    }
+
+    .key-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .key-modal-inner {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 340px;
+      width: 90%;
+    }
+
+    .key-modal-inner h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .key-modal-inner p {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .key-modal-inner a {
+      color: #1989fa;
+      text-decoration: none;
+    }
+
+    .key-modal-inner input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+
+    .key-modal-inner button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #c9a96e, #8b6914);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>江浙沪米其林餐厅</h1>
+    <span class="header-stats" id="stats">加载中...</span>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" data-city="全部">全部</button>
+    <button class="filter-btn" data-city="上海">上海 (6)</button>
+    <button class="filter-btn" data-city="杭州">杭州 (4)</button>
+    <button class="filter-btn" data-city="南京">南京 (2)</button>
+    <button class="filter-btn" data-city="苏州">苏州 (2)</button>
+    <button class="filter-btn" data-city="宁波">宁波 (1)</button>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="map-hint" id="mapHint">👆 点击标记查看餐厅详情</div>
+
+  <div class="key-modal" id="keyModal">
+    <div class="key-modal-inner">
+      <h3>需要配置高德地图 API Key</h3>
+      <p>免费申请：<a href="https://lbs.amap.com/dev/key/app" target="_blank">前往申请高德开放平台</a></p>
+      <input type="text" id="keyInput" placeholder="请粘贴你的高德 Web JS API Key">
+      <button onclick="saveKey()">确定</button>
+    </div>
+  </div>
+
+  <script>
+    // 餐厅数据
+    const restaurants = [
+      { id: "1", name: "唐阁", nameEn: "Tang Court", star: 3, city: "上海", district: "黄浦区", address: "上海市黄浦区马当路99号新天地朗廷酒店5楼", phone: "021-6318-9999", hours: "11:30-14:30, 17:30-22:00", price: "人均 2000-3000元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 31.220, longitude: 121.480, type: "粤菜" },
+      { id: "2", name: "Ultraviolet", nameEn: "Ultraviolet by Paul Pairet", star: 3, city: "上海", district: "黄浦区", address: "上海市黄浦区中山东一路18号外滩十八号6楼", phone: "021-6888-9999", hours: "仅限晚餐 18:00-23:00", price: "人均 6000元", image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400", latitude: 31.235, longitude: 121.490, type: "创意菜" },
+      { id: "3", name: "泰安门", nameEn: "Taian Table", star: 2, city: "上海", district: "静安区", address: "上海市静安区泰安门路318号", phone: "021-6288-8989", hours: "17:30-22:00", price: "人均 1800-2500元", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400", latitude: 31.225, longitude: 121.445, type: "创新菜" },
+      { id: "4", name: "新荣记", nameEn: "Xin Rong Ji", star: 2, city: "上海", district: "黄浦区", address: "上海市黄浦区南京西路1266号恒隆广场3楼", phone: "021-6288-1234", hours: "11:00-14:00, 17:00-21:30", price: "人均 800-1500元", image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400", latitude: 31.230, longitude: 121.460, type: "台州菜" },
+      { id: "5", name: "逸龙阁", nameEn: "Yi Long Court", star: 2, city: "上海", district: "黄浦区", address: "上海市黄浦区外滩二号上海半岛酒店2楼", phone: "021-6327-5241", hours: "11:30-14:30, 17:30-22:00", price: "人均 1500-2500元", image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400", latitude: 31.235, longitude: 121.485, type: "粤菜" },
+      { id: "6", name: "甬府", nameEn: "Yong Fu", star: 1, city: "上海", district: "黄浦区", address: "上海市黄浦区进贤路120号", phone: "021-6253-8888", hours: "11:00-14:00, 17:00-21:30", price: "人均 500-800元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 31.228, longitude: 121.465, type: "宁波菜" },
+      { id: "7", name: "鹿鸣印象", nameEn: "Lu Ming", star: 1, city: "杭州", district: "西湖区", address: "杭州市西湖区北山街道曙光路120号", phone: "0571-8799-8888", hours: "11:00-14:00, 17:00-21:00", price: "人均 600-1000元", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400", latitude: 30.265, longitude: 120.135, type: "杭帮菜" },
+      { id: "8", name: "金沙厅", nameEn: "Jin Sha Ting", star: 2, city: "杭州", district: "西湖区", address: "杭州市西湖区灵隐路5号西子湖四季酒店1楼", phone: "0571-8797-9711", hours: "11:30-14:00, 17:30-21:00", price: "人均 1000-1500元", image: "https://images.unsplash.com/photo-1580442151529-343f2f6e0e27?w=400", latitude: 30.255, longitude: 120.130, type: "粤菜/杭帮菜" },
+      { id: "9", name: "解香楼", nameEn: "Xie Xiang Lou", star: 1, city: "杭州", district: "西湖区", address: "杭州市西湖区三台山路三台云舍1号", phone: "0571-8797-9888", hours: "11:00-14:00, 17:00-21:00", price: "人均 500-800元", image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400", latitude: 30.250, longitude: 120.140, type: "创意江南菜" },
+      { id: "10", name: "紫苏养生料理", nameEn: "Zisu", star: 1, city: "杭州", district: "西湖区", address: "杭州市西湖区北山街道曙光路69号", phone: "0571-8780-8888", hours: "11:30-14:00, 17:30-21:00", price: "人均 400-600元", image: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400", latitude: 30.262, longitude: 120.138, type: "日式料理" },
+      { id: "11", name: "江南灶", nameEn: "Jiang Nan Kitchen", star: 2, city: "南京", district: "鼓楼区", address: "南京市鼓楼区中山北路2号金陵饭店2楼", phone: "025-8310-8888", hours: "11:30-14:00, 17:30-21:00", price: "人均 500-800元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.060, longitude: 118.780, type: "淮扬菜" },
+      { id: "12", name: "香格里拉夏宫", nameEn: "Summer Palace", star: 1, city: "南京", district: "鼓楼区", address: "南京市鼓楼区汉中路2号香格里拉大酒店1楼", phone: "025-8335-8888", hours: "11:30-14:30, 17:30-22:00", price: "人均 400-700元", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400", latitude: 32.045, longitude: 118.785, type: "粤菜/淮扬菜" },
+      { id: "13", name: "苏帮菜馆", nameEn: "Su Cuisine", star: 1, city: "苏州", district: "姑苏区", address: "苏州市姑苏区太监弄1号", phone: "0512-6522-8888", hours: "10:30-14:00, 16:30-20:30", price: "人均 200-400元", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400", latitude: 31.295, longitude: 120.625, type: "苏帮菜" },
+      { id: "14", name: "老苏州茶酒楼", nameEn: "Old Suzhou", star: 1, city: "苏州", district: "姑苏区", address: "苏州市姑苏区观前街太监弄8号", phone: "0512-6521-8888", hours: "10:00-14:00, 16:30-20:30", price: "人均 150-300元", image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400", latitude: 31.298, longitude: 120.628, type: "苏帮菜" },
+      { id: "15", name: "宁波菜馆", nameEn: "Ningbo Cuisine", star: 1, city: "宁波", district: "鄞州区", address: "宁波市鄞州区钱湖北路777号万象城3楼", phone: "0574-8888-8888", hours: "11:00-14:00, 17:00-21:00", price: "人均 300-500元", image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400", latitude: 29.855, longitude: 121.555, type: "浙菜" }
+    ];
+
+    let map = null;
+    let markers = [];
+
+    // 检查 Key
+    function checkKey() {
+      const savedKey = localStorage.getItem('amap_key');
+      if (savedKey) {
+        document.getElementById('keyModal').style.display = 'none';
+        loadMap(savedKey);
+      } else {
+        document.getElementById('keyModal').style.display = 'flex';
+      }
+    }
+
+    // 保存 Key
+    function saveKey() {
+      const key = document.getElementById('keyInput').value.trim();
+      if (!key) {
+        alert('请输入 API Key');
+        return;
+      }
+      localStorage.setItem('amap_key', key);
+      document.getElementById('keyModal').style.display = 'none';
+      loadMap(key);
+    }
+
+    // 加载地图
+    function loadMap(key) {
+      const script = document.createElement('script');
+      script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.Scale,AMap.ToolBar`;
+      script.onload = initMap;
+      document.head.appendChild(script);
+    }
+
+    // 城市中心点
+    const cityCenter = {
+      '全部': { lng: 120.5, lat: 31.0, zoom: 6 },
+      '上海': { lng: 121.47, lat: 31.23, zoom: 11 },
+      '杭州': { lng: 120.15, lat: 30.25, zoom: 11 },
+      '南京': { lng: 118.78, lat: 32.06, zoom: 11 },
+      '苏州': { lng: 120.62, lat: 31.30, zoom: 11 },
+      '宁波': { lng: 121.55, lat: 29.85, zoom: 11 }
+    };
+
+    // 初始化地图
+    function initMap() {
+      map = new AMap.Map('map', {
+        zoom: 6,
+        center: new AMap.LngLat(120.5, 31.0)
+      });
+
+      // 添加比例尺
+      map.addControl(new AMap.Scale());
+
+      // 添加工具栏
+      map.addControl(new AMap.ToolBar());
+
+      // 添加标记
+      addMarkers(restaurants);
+      document.getElementById('stats').textContent = '15 家餐厅';
+
+      // 绑定筛选
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+
+          const city = this.dataset.city;
+          const filtered = city === '全部' ? restaurants : restaurants.filter(r => r.city === city);
+          addMarkers(filtered);
+          document.getElementById('stats').textContent = filtered.length + ' 家餐厅';
+
+          // 地图移动到选中城市
+          const center = cityCenter[city];
+          map.setZoomAndCenter(center.zoom, new AMap.LngLat(center.lng, center.lat));
+        });
+      });
+
+      // 隐藏提示
+      setTimeout(() => {
+        document.getElementById('mapHint').style.display = 'none';
+      }, 4000);
+    }
+
+    // 创建标记
+    function addMarkers(list) {
+      if (markers.length > 0) {
+        map.remove(markers);
+        markers = [];
+      }
+
+      list.forEach(r => {
+        const marker = new AMap.Marker({
+          position: new AMap.LngLat(r.longitude, r.latitude),
+          title: r.name
+        });
+
+        marker.on('click', function() {
+          const infoWindow = new AMap.InfoWindow({
+            content: createInfoContent(r),
+            offset: new AMap.Pixel(0, -30)
+          });
+          infoWindow.open(map, marker.getPosition());
+
+          // 地址点击定位
+          setTimeout(() => {
+            const addrEl = document.querySelector('.address-link');
+            if (addrEl) {
+              addrEl.addEventListener('click', function() {
+                map.setZoomAndCenter(16, new AMap.LngLat(r.longitude, r.latitude));
+              });
+            }
+          }, 100);
+        });
+
+        map.add(marker);
+        markers.push(marker);
+      });
+    }
+
+    // 信息窗体内容
+    function createInfoContent(r) {
+      return `<div class="info-window">
+        <div class="info-window-header">
+          <img src="${r.image}" alt="${r.name}">
+        </div>
+        <div class="info-window-body">
+          <div class="info-window-title">${r.name}</div>
+          <div class="info-window-subtitle">${r.nameEn}</div>
+          <div class="info-window-badges">
+            <span class="info-badge badge-star${r.star < 3 ? '-' + r.star : ''}">${r.star}星米其林</span>
+            <span class="info-badge badge-city">${r.city}</span>
+            <span class="info-badge badge-type">${r.type}</span>
+          </div>
+          <div class="info-window-row"><strong>地址：</strong><span class="address-link">${r.address}</span></div>
+          <div class="info-window-row"><strong>电话：</strong>${r.phone}</div>
+          <div class="info-window-row"><strong>营业：</strong>${r.hours}</div>
+          <div class="info-window-row"><strong>消费：</strong>${r.price}</div>
+          <div class="info-window-actions">
+            <a class="info-window-btn info-window-btn-secondary" href="tel:${r.phone}">📞 拨打</a>
+            <a class="info-window-btn info-window-btn-primary" href="https://uri.amap.com/navigation?to=${r.longitude},${r.latitude},${r.name}&mode=car" target="_blank">🗺️ 导航</a>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    
+    // 启动
+    checkKey();
+  </script>
+</body>
+</html>
