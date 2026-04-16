@@ -80,21 +80,16 @@
       position: relative;
     }
 
-    /* 确保地图控件显示 */
-    .amap-zoomcontrol {
+    .amap-zoomcontrol, .amap-toolbar, .amap-scale {
       position: absolute !important;
-      right: 10px !important;
-      bottom: 40px !important;
     }
 
     .amap-toolbar {
-      position: absolute !important;
       right: 10px !important;
       bottom: 40px !important;
     }
 
     .amap-scale {
-      position: absolute !important;
       left: 10px !important;
       bottom: 10px !important;
     }
@@ -112,7 +107,6 @@
       z-index: 999;
     }
 
-    /* 自定义信息窗体样式 */
     .amap-info-content {
       padding: 0 !important;
     }
@@ -236,71 +230,6 @@
       background: #f5f5f5;
       color: #666;
     }
-
-    .key-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-    }
-
-    .key-modal-inner {
-      background: #fff;
-      padding: 30px;
-      border-radius: 16px;
-      max-width: 340px;
-      width: 90%;
-    }
-
-    .key-modal-inner h3 {
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-
-    .key-modal-inner p {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
-
-    .key-modal-inner a {
-      color: #1989fa;
-      text-decoration: none;
-    }
-
-    .key-modal-inner input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 14px;
-      margin-bottom: 12px;
-      box-sizing: border-box;
-    }
-
-    .key-modal-inner button {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #c9a96e, #8b6914);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-    }
   </style>
 </head>
 <body>
@@ -323,17 +252,7 @@
 
   <div class="map-hint" id="mapHint">👆 点击标记查看餐厅详情</div>
 
-  <div class="key-modal" id="keyModal">
-    <div class="key-modal-inner">
-      <h3>需要配置高德地图 API Key</h3>
-      <p>免费申请：<a href="https://lbs.amap.com/dev/key/app" target="_blank">前往申请高德开放平台</a></p>
-      <input type="text" id="keyInput" placeholder="请粘贴你的高德 Web JS API Key">
-      <button onclick="saveKey()">确定</button>
-    </div>
-  </div>
-
   <script>
-    // 餐厅数据
     const restaurants = [
       { id: "1", name: "唐阁", nameEn: "Tang Court", star: 3, city: "上海", district: "黄浦区", address: "上海市黄浦区马当路99号新天地朗廷酒店5楼", phone: "021-6318-9999", hours: "11:30-14:30, 17:30-22:00", price: "人均 2000-3000元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 31.220, longitude: 121.480, type: "粤菜" },
       { id: "2", name: "Ultraviolet", nameEn: "Ultraviolet by Paul Pairet", star: 3, city: "上海", district: "黄浦区", address: "上海市黄浦区中山东一路18号外滩十八号6楼", phone: "021-6888-9999", hours: "仅限晚餐 18:00-23:00", price: "人均 6000元", image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400", latitude: 31.235, longitude: 121.490, type: "创意菜" },
@@ -355,38 +274,14 @@
     let map = null;
     let markers = [];
 
-    // 检查 Key
-    function checkKey() {
-      const savedKey = localStorage.getItem('amap_key');
-      if (savedKey) {
-        document.getElementById('keyModal').style.display = 'none';
-        loadMap(savedKey);
-      } else {
-        document.getElementById('keyModal').style.display = 'flex';
-      }
-    }
-
-    // 保存 Key
-    function saveKey() {
-      const key = document.getElementById('keyInput').value.trim();
-      if (!key) {
-        alert('请输入 API Key');
-        return;
-      }
-      localStorage.setItem('amap_key', key);
-      document.getElementById('keyModal').style.display = 'none';
-      loadMap(key);
-    }
-
-    // 加载地图
-    function loadMap(key) {
+    function loadMap() {
+      const key = 'd10226f4b41966edfce1f00ebeb183bc';
       const script = document.createElement('script');
       script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.Scale,AMap.ToolBar`;
       script.onload = initMap;
       document.head.appendChild(script);
     }
 
-    // 城市中心点
     const cityCenter = {
       '全部': { lng: 120.5, lat: 31.0, zoom: 6 },
       '上海': { lng: 121.47, lat: 31.23, zoom: 11 },
@@ -396,67 +291,50 @@
       '宁波': { lng: 121.55, lat: 29.85, zoom: 11 }
     };
 
-    // 初始化地图
     function initMap() {
       map = new AMap.Map('map', {
         zoom: 6,
         center: new AMap.LngLat(120.5, 31.0)
       });
-
-      // 添加比例尺
       map.addControl(new AMap.Scale());
-
-      // 添加工具栏
       map.addControl(new AMap.ToolBar());
-
-      // 添加标记
       addMarkers(restaurants);
       document.getElementById('stats').textContent = '15 家餐厅';
 
-      // 绑定筛选
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
           document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
           this.classList.add('active');
-
           const city = this.dataset.city;
           const filtered = city === '全部' ? restaurants : restaurants.filter(r => r.city === city);
           addMarkers(filtered);
           document.getElementById('stats').textContent = filtered.length + ' 家餐厅';
-
-          // 地图移动到选中城市
           const center = cityCenter[city];
           map.setZoomAndCenter(center.zoom, new AMap.LngLat(center.lng, center.lat));
         });
       });
 
-      // 隐藏提示
       setTimeout(() => {
         document.getElementById('mapHint').style.display = 'none';
       }, 4000);
     }
 
-    // 创建标记
     function addMarkers(list) {
       if (markers.length > 0) {
         map.remove(markers);
         markers = [];
       }
-
       list.forEach(r => {
         const marker = new AMap.Marker({
           position: new AMap.LngLat(r.longitude, r.latitude),
           title: r.name
         });
-
         marker.on('click', function() {
           const infoWindow = new AMap.InfoWindow({
             content: createInfoContent(r),
             offset: new AMap.Pixel(0, -30)
           });
           infoWindow.open(map, marker.getPosition());
-
-          // 地址点击定位
           setTimeout(() => {
             const addrEl = document.querySelector('.address-link');
             if (addrEl) {
@@ -466,13 +344,11 @@
             }
           }, 100);
         });
-
         map.add(marker);
         markers.push(marker);
       });
     }
 
-    // 信息窗体内容
     function createInfoContent(r) {
       return `<div class="info-window">
         <div class="info-window-header">
@@ -498,9 +374,7 @@
       </div>`;
     }
 
-    
-    // 启动
-    checkKey();
+    loadMap();
   </script>
 </body>
 </html>
