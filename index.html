@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>江浙沪米其林餐厅地图</title>
+  <title>南京米其林餐厅地图</title>
   <style>
     * {
       margin: 0;
@@ -80,20 +80,6 @@
       position: relative;
     }
 
-    .amap-zoomcontrol, .amap-toolbar, .amap-scale {
-      position: absolute !important;
-    }
-
-    .amap-toolbar {
-      right: 10px !important;
-      bottom: 40px !important;
-    }
-
-    .amap-scale {
-      left: 10px !important;
-      bottom: 10px !important;
-    }
-
     .map-hint {
       position: fixed;
       bottom: 20px;
@@ -160,17 +146,19 @@
       font-size: 11px;
     }
 
-    .badge-star {
+    .badge-star-1 {
       background: linear-gradient(135deg, #c9a96e, #8b6914);
       color: #fff;
     }
 
-    .badge-star-2 {
-      background: linear-gradient(135deg, #a0a0a0, #666);
+    .badge-bibendum {
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      color: #fff;
     }
 
-    .badge-star-1 {
-      background: linear-gradient(135deg, #cd7f32, #8b4513);
+    .badge-selected {
+      background: linear-gradient(135deg, #2196F3, #1565C0);
+      color: #fff;
     }
 
     .badge-city {
@@ -235,17 +223,15 @@
 <body>
 
   <div class="header">
-    <h1>江浙沪米其林餐厅</h1>
+    <h1>南京米其林餐厅</h1>
     <span class="header-stats" id="stats">加载中...</span>
   </div>
 
   <div class="filter-bar">
-    <button class="filter-btn active" data-city="全部">全部</button>
-    <button class="filter-btn" data-city="上海">上海 (6)</button>
-    <button class="filter-btn" data-city="杭州">杭州 (4)</button>
-    <button class="filter-btn" data-city="南京">南京 (2)</button>
-    <button class="filter-btn" data-city="苏州">苏州 (2)</button>
-    <button class="filter-btn" data-city="宁波">宁波 (1)</button>
+    <button class="filter-btn active" data-type="全部">全部</button>
+    <button class="filter-btn" data-type="米其林一星">⭐ 米其林星级</button>
+    <button class="filter-btn" data-type="必比登推介">🔵 必比登推介</button>
+    <button class="filter-btn" data-type="米其林入选餐厅">🏠 米其林入选</button>
   </div>
 
   <div id="map"></div>
@@ -254,21 +240,47 @@
 
   <script>
     const restaurants = [
-      { id: "1", name: "唐阁", nameEn: "Tang Court", star: 3, city: "上海", district: "黄浦区", address: "上海市黄浦区马当路99号新天地朗廷酒店5楼", phone: "021-6318-9999", hours: "11:30-14:30, 17:30-22:00", price: "人均 2000-3000元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 31.220, longitude: 121.480, type: "粤菜" },
-      { id: "2", name: "Ultraviolet", nameEn: "Ultraviolet by Paul Pairet", star: 3, city: "上海", district: "黄浦区", address: "上海市黄浦区中山东一路18号外滩十八号6楼", phone: "021-6888-9999", hours: "仅限晚餐 18:00-23:00", price: "人均 6000元", image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400", latitude: 31.235, longitude: 121.490, type: "创意菜" },
-      { id: "3", name: "泰安门", nameEn: "Taian Table", star: 2, city: "上海", district: "静安区", address: "上海市静安区泰安门路318号", phone: "021-6288-8989", hours: "17:30-22:00", price: "人均 1800-2500元", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400", latitude: 31.225, longitude: 121.445, type: "创新菜" },
-      { id: "4", name: "新荣记", nameEn: "Xin Rong Ji", star: 2, city: "上海", district: "黄浦区", address: "上海市黄浦区南京西路1266号恒隆广场3楼", phone: "021-6288-1234", hours: "11:00-14:00, 17:00-21:30", price: "人均 800-1500元", image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400", latitude: 31.230, longitude: 121.460, type: "台州菜" },
-      { id: "5", name: "逸龙阁", nameEn: "Yi Long Court", star: 2, city: "上海", district: "黄浦区", address: "上海市黄浦区外滩二号上海半岛酒店2楼", phone: "021-6327-5241", hours: "11:30-14:30, 17:30-22:00", price: "人均 1500-2500元", image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400", latitude: 31.235, longitude: 121.485, type: "粤菜" },
-      { id: "6", name: "甬府", nameEn: "Yong Fu", star: 1, city: "上海", district: "黄浦区", address: "上海市黄浦区进贤路120号", phone: "021-6253-8888", hours: "11:00-14:00, 17:00-21:30", price: "人均 500-800元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 31.228, longitude: 121.465, type: "宁波菜" },
-      { id: "7", name: "鹿鸣印象", nameEn: "Lu Ming", star: 1, city: "杭州", district: "西湖区", address: "杭州市西湖区北山街道曙光路120号", phone: "0571-8799-8888", hours: "11:00-14:00, 17:00-21:00", price: "人均 600-1000元", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400", latitude: 30.265, longitude: 120.135, type: "杭帮菜" },
-      { id: "8", name: "金沙厅", nameEn: "Jin Sha Ting", star: 2, city: "杭州", district: "西湖区", address: "杭州市西湖区灵隐路5号西子湖四季酒店1楼", phone: "0571-8797-9711", hours: "11:30-14:00, 17:30-21:00", price: "人均 1000-1500元", image: "https://images.unsplash.com/photo-1580442151529-343f2f6e0e27?w=400", latitude: 30.255, longitude: 120.130, type: "粤菜/杭帮菜" },
-      { id: "9", name: "解香楼", nameEn: "Xie Xiang Lou", star: 1, city: "杭州", district: "西湖区", address: "杭州市西湖区三台山路三台云舍1号", phone: "0571-8797-9888", hours: "11:00-14:00, 17:00-21:00", price: "人均 500-800元", image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400", latitude: 30.250, longitude: 120.140, type: "创意江南菜" },
-      { id: "10", name: "紫苏养生料理", nameEn: "Zisu", star: 1, city: "杭州", district: "西湖区", address: "杭州市西湖区北山街道曙光路69号", phone: "0571-8780-8888", hours: "11:30-14:00, 17:30-21:00", price: "人均 400-600元", image: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400", latitude: 30.262, longitude: 120.138, type: "日式料理" },
-      { id: "11", name: "江南灶", nameEn: "Jiang Nan Kitchen", star: 2, city: "南京", district: "鼓楼区", address: "南京市鼓楼区中山北路2号金陵饭店2楼", phone: "025-8310-8888", hours: "11:30-14:00, 17:30-21:00", price: "人均 500-800元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.060, longitude: 118.780, type: "淮扬菜" },
-      { id: "12", name: "香格里拉夏宫", nameEn: "Summer Palace", star: 1, city: "南京", district: "鼓楼区", address: "南京市鼓楼区汉中路2号香格里拉大酒店1楼", phone: "025-8335-8888", hours: "11:30-14:30, 17:30-22:00", price: "人均 400-700元", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400", latitude: 32.045, longitude: 118.785, type: "粤菜/淮扬菜" },
-      { id: "13", name: "苏帮菜馆", nameEn: "Su Cuisine", star: 1, city: "苏州", district: "姑苏区", address: "苏州市姑苏区太监弄1号", phone: "0512-6522-8888", hours: "10:30-14:00, 16:30-20:30", price: "人均 200-400元", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400", latitude: 31.295, longitude: 120.625, type: "苏帮菜" },
-      { id: "14", name: "老苏州茶酒楼", nameEn: "Old Suzhou", star: 1, city: "苏州", district: "姑苏区", address: "苏州市姑苏区观前街太监弄8号", phone: "0512-6521-8888", hours: "10:00-14:00, 16:30-20:30", price: "人均 150-300元", image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400", latitude: 31.298, longitude: 120.628, type: "苏帮菜" },
-      { id: "15", name: "宁波菜馆", nameEn: "Ningbo Cuisine", star: 1, city: "宁波", district: "鄞州区", address: "宁波市鄞州区钱湖北路777号万象城3楼", phone: "0574-8888-8888", hours: "11:00-14:00, 17:00-21:00", price: "人均 300-500元", image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400", latitude: 29.855, longitude: 121.555, type: "浙菜" }
+      { id: "1", name: "帝粤轩", nameEn: "Di Yue Xuan", star: 1, typeText: "米其林一星", city: "南京", address: "中山路18号南京丽思卡尔顿酒店39层", phone: "025-xxxx-xxxx", hours: "11:30-14:30, 17:30-22:00", price: "人均 500-800元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0475, longitude: 118.7883, type: "粤菜" },
+      { id: "2", name: "江南灶·云府", nameEn: "Jiangnan Kitchen", star: 1, typeText: "米其林一星", city: "南京", address: "中央路201号南京香格里拉大酒店42层", phone: "025-xxxx-xxxx", hours: "11:30-14:30, 17:30-22:00", price: "人均 400-600元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0722, longitude: 118.7811, type: "淮扬菜" },
+      { id: "3", name: "梦都会", nameEn: "Meng Du Hui", star: 1, typeText: "米其林一星", city: "南京", address: "江东中路222号南京奥体中心65号", phone: "025-xxxx-xxxx", hours: "11:00-14:00, 17:00-21:00", price: "人均 300-500元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0105, longitude: 118.7294, type: "徽菜" },
+      { id: "4", name: "品宁府", nameEn: "Pin Ning Fu", star: 1, typeText: "米其林一星", city: "南京", address: "中山路18号南京丽思卡尔顿酒店40层", phone: "025-xxxx-xxxx", hours: "11:30-14:30, 17:30-22:00", price: "人均 400-600元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0475, longitude: 118.7883, type: "淮扬菜" },
+      { id: "5", name: "迟慢厨房", nameEn: "Chi Man Kitchen", star: 0, typeText: "必比登推介", city: "南京", address: "应天大街388号1865创意园凡德园A2栋", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 100-200元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0089, longitude: 118.7694, type: "淮扬菜" },
+      { id: "6", name: "崔姐小吃", nameEn: "Cui Jie Snacks", star: 0, typeText: "必比登推介", city: "南京", address: "大香炉22-2号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 20-50元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0361, longitude: 118.7839, type: "小吃" },
+      { id: "7", name: "都市里的乡村", nameEn: "Village in City", star: 0, typeText: "必比登推介", city: "南京", address: "建邺路183号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 80-150元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0333, longitude: 118.7778, type: "江苏菜" },
+      { id: "8", name: "芳婆糕团店", nameEn: "Fang Po Rice Cake", star: 0, typeText: "必比登推介", city: "南京", address: "王府大街50号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 20-50元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0417, longitude: 118.7806, type: "点心" },
+      { id: "9", name: "富临轩 (集庆门大街)", nameEn: "Fu Lin Xuan", star: 0, typeText: "必比登推介", city: "南京", address: "集庆门大街220号5幢101室", phone: "025-xxxx-xxxx", hours: "11:00-14:00, 17:00-21:00", price: "人均 100-200元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0222, longitude: 118.7417, type: "粤菜" },
+      { id: "10", name: "顾家包子", nameEn: "Gu Jia Bao Zi", star: 0, typeText: "必比登推介", city: "南京", address: "双塘路60号", phone: "025-xxxx-xxxx", hours: "06:00-12:00", price: "人均 10-30元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0139, longitude: 118.7722, type: "点心" },
+      { id: "11", name: "广迎居·老正兴", nameEn: "Guang Ying Ju", star: 0, typeText: "必比登推介", city: "南京", address: "宁海路122号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 80-150元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0611, longitude: 118.775, type: "江浙菜" },
+      { id: "12", name: "好婆汤包", nameEn: "Hao Po Soup Dumpling", star: 0, typeText: "必比登推介", city: "南京", address: "双塘路1号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 20-50元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0139, longitude: 118.7722, type: "点心" },
+      { id: "13", name: "侯品小苑", nameEn: "Hou Pin Xiao Yuan", star: 0, typeText: "必比登推介", city: "南京", address: "中山路132号萩德广场二期8层", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 100-200元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0417, longitude: 118.7833, type: "淮扬菜" },
+      { id: "14", name: "金陵汪家馄饨 (集庆路)", nameEn: "Wang Jia Wonton", star: 0, typeText: "必比登推介", city: "南京", address: "集庆路来凤小区金粟庵9号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 15-30元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0194, longitude: 118.7722, type: "点心" },
+      { id: "15", name: "金陵杨家馄饨店 (曹都巷)", nameEn: "Yang Jia Wonton", star: 0, typeText: "必比登推介", city: "南京", address: "曹都巷1-3号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 15-30元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0389, longitude: 118.7833, type: "点心" },
+      { id: "16", name: "李记清真馆", nameEn: "Li Ji Muslim Restaurant", star: 0, typeText: "必比登推介", city: "南京", address: "打钉巷1号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 20-50元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.025, longitude: 118.7806, type: "点心" },
+      { id: "17", name: "强烨饭店", nameEn: "Qiang Ye Restaurant", star: 0, typeText: "必比登推介", city: "南京", address: "虎踞南路40号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 60-120元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0333, longitude: 118.7667, type: "淮扬菜" },
+      { id: "18", name: "三百碗宝应长鱼面", nameEn: "300 Bowls Eel Noodles", star: 0, typeText: "必比登推介", city: "南京", address: "清凉门大街60号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 30-60元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0528, longitude: 118.7444, type: "面食" },
+      { id: "19", name: "无名老卤面", nameEn: "No Name Braised Noodles", star: 0, typeText: "必比登推介", city: "南京", address: "中华路中华门城堡旁", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 20-40元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0139, longitude: 118.7833, type: "面食" },
+      { id: "20", name: "小潘记鸭血粉丝汤", nameEn: "Xiao Pan Ji Duck Blood Noodles", star: 0, typeText: "必比登推介", city: "南京", address: "珠江路275号", phone: "025-xxxx-xxxx", hours: "10:00-22:00", price: "人均 20-40元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0472, longitude: 118.7972, type: "面食" },
+      { id: "21", name: "馨方园食府", nameEn: "Xin Fang Yuan", star: 0, typeText: "必比登推介", city: "南京", address: "大石坝街126号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 60-120元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0194, longitude: 118.7944, type: "江浙菜" },
+      { id: "22", name: "徐建萍汤包 (热河南路)", nameEn: "Xu Jian Ping Soup Dumpling", star: 0, typeText: "必比登推介", city: "南京", address: "热河南路37号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 20-50元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0833, longitude: 118.7444, type: "点心" },
+      { id: "23", name: "囿面", nameEn: "You Mian", star: 0, typeText: "必比登推介", city: "南京", address: "老门东箍桶巷122号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 30-60元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0139, longitude: 118.7917, type: "面食" },
+      { id: "24", name: "正清牛肉锅贴店", nameEn: "Zheng Qing Beef Potstickers", star: 0, typeText: "必比登推介", city: "南京", address: "许家巷2号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 20-50元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0222, longitude: 118.7778, type: "点心" },
+      { id: "25", name: "致和老鸭粉丝汤", nameEn: "Zhi He Duck Noodles", star: 0, typeText: "必比登推介", city: "南京", address: "张府园1-2号", phone: "025-xxxx-xxxx", hours: "10:00-22:00", price: "人均 20-40元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0333, longitude: 118.7861, type: "面食" },
+      { id: "26", name: "品味江南", nameEn: "Pin Wei Jiang Nan", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "江东中路236号华灯坊", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 100-200元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0056, longitude: 118.7361, type: "淮扬菜" },
+      { id: "27", name: "雨传 (玄武)", nameEn: "Yu Chuan", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "中山东路311-1号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 100-200元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0417, longitude: 118.8111, type: "川菜" },
+      { id: "28", name: "源空间", nameEn: "Source Space", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "江东中路333号南京奥体中心", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 150-300元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0105, longitude: 118.7294, type: "江浙菜" },
+      { id: "29", name: "兴宫·开小灶", nameEn: "Xing Gong", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "太平南路1号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 80-150元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0306, longitude: 118.7944, type: "江浙菜" },
+      { id: "30", name: "晴雅", nameEn: "Qing Ya", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "建邺路南京康莱德酒店", phone: "025-xxxx-xxxx", hours: "11:30-14:30, 17:30-22:00", price: "人均 200-400元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0056, longitude: 118.7361, type: "淮扬菜" },
+      { id: "31", name: "芳森", nameEn: "Fang Sen", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "江东中路222号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 100-200元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0105, longitude: 118.7294, type: "创新菜" },
+      { id: "32", name: "La Môme", nameEn: "La Mome", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "中山路18号南京丽思卡尔顿酒店62层", phone: "025-xxxx-xxxx", hours: "18:00-23:00", price: "人均 500-800元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0475, longitude: 118.7883, type: "时尚法国菜" },
+      { id: "33", name: "万豪轩", nameEn: "Wan Hao Xuan", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "中山路18号南京丽思卡尔顿酒店41层", phone: "025-xxxx-xxxx", hours: "11:30-14:30, 17:30-22:00", price: "人均 300-500元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0475, longitude: 118.7883, type: "粤菜" },
+      { id: "34", name: "L'Arôme in the sky", nameEn: "L'Arome in the sky", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "汉中路2号金陵饭店亚太商务楼57层", phone: "025-xxxx-xxxx", hours: "18:00-23:00", price: "人均 400-600元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0444, longitude: 118.7833, type: "时尚法国菜" },
+      { id: "35", name: "西北桥头拉面大王 (鼓楼)", nameEn: "Xi Bei Qiao Tou Lamian", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "丁家桥18号", phone: "025-xxxx-xxxx", hours: "06:00-14:00", price: "人均 20-50元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0694, longitude: 118.7778, type: "面食" },
+      { id: "36", name: "江南灶", nameEn: "Jiang Nan Kitchen", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "中央路201号南京香格里拉大酒店1层", phone: "025-xxxx-xxxx", hours: "11:30-14:30, 17:30-22:00", price: "人均 200-400元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0722, longitude: 118.7811, type: "淮扬菜" },
+      { id: "37", name: "龙吟山房 (江宁)", nameEn: "Long Yin Shan Fang", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "天印大道699号", phone: "025-xxxx-xxxx", hours: "11:00-14:00, 17:00-21:00", price: "人均 150-300元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 31.9139, longitude: 118.8833, type: "淮扬菜" },
+      { id: "38", name: "Le Siècle", nameEn: "Le Siecle", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "中山东路311-1号", phone: "025-xxxx-xxxx", hours: "18:00-23:00", price: "人均 300-500元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0417, longitude: 118.8111, type: "时尚欧陆菜" },
+      { id: "39", name: "万国春花园餐厅", nameEn: "Wan Guo Chun Garden", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "江苏路3号颐和公馆", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 100-200元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0639, longitude: 118.775, type: "淮扬菜" },
+      { id: "40", name: "素香园", nameEn: "Su Xiang Yuan", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "广州路208号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 80-150元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0528, longitude: 118.775, type: "素食" },
+      { id: "41", name: "海九", nameEn: "Hai Jiu", star: 0, typeText: "米其林入选餐厅", city: "南京", address: "江东中路222号", phone: "025-xxxx-xxxx", hours: "11:00-21:00", price: "人均 200-400元", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400", latitude: 32.0105, longitude: 118.7294, type: "海鲜" }
     ];
 
     let map = null;
@@ -282,41 +294,68 @@
       document.head.appendChild(script);
     }
 
-    const cityCenter = {
-      '全部': { lng: 120.5, lat: 31.0, zoom: 6 },
-      '上海': { lng: 121.47, lat: 31.23, zoom: 11 },
-      '杭州': { lng: 120.15, lat: 30.25, zoom: 11 },
-      '南京': { lng: 118.78, lat: 32.06, zoom: 11 },
-      '苏州': { lng: 120.62, lat: 31.30, zoom: 11 },
-      '宁波': { lng: 121.55, lat: 29.85, zoom: 11 }
-    };
-
     function initMap() {
       map = new AMap.Map('map', {
-        zoom: 6,
-        center: new AMap.LngLat(120.5, 31.0)
+        zoom: 12,
+        center: new AMap.LngLat(118.78, 32.04)
       });
       map.addControl(new AMap.Scale());
       map.addControl(new AMap.ToolBar());
       addMarkers(restaurants);
-      document.getElementById('stats').textContent = '15 家餐厅';
+      document.getElementById('stats').textContent = '42 家餐厅';
 
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
           document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
           this.classList.add('active');
-          const city = this.dataset.city;
-          const filtered = city === '全部' ? restaurants : restaurants.filter(r => r.city === city);
+          const type = this.dataset.type;
+          const filtered = type === '全部' ? restaurants : restaurants.filter(r => r.typeText === type);
           addMarkers(filtered);
           document.getElementById('stats').textContent = filtered.length + ' 家餐厅';
-          const center = cityCenter[city];
-          map.setZoomAndCenter(center.zoom, new AMap.LngLat(center.lng, center.lat));
         });
       });
 
       setTimeout(() => {
         document.getElementById('mapHint').style.display = 'none';
       }, 4000);
+    }
+
+    function createMarkerIcon(typeText) {
+      let color = '#2196F3';
+      let icon = '●';
+
+      if (typeText === '米其林一星') {
+        color = '#c9a96e';
+        icon = '★';
+      } else if (typeText === '必比登推介') {
+        color = '#4CAF50';
+        icon = '●';
+      } else if (typeText === '米其林入选餐厅') {
+        color = '#2196F3';
+        icon = '◆';
+      }
+
+      return new AMap.Marker({
+        icon: new AMap.DivIcon({
+          html: `<div style="
+            background: ${color};
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+          ">${icon}</div>`,
+          size: [28, 28],
+          anchor: 'center'
+        }),
+        position: [0, 0]
+      });
     }
 
     function addMarkers(list) {
@@ -329,6 +368,7 @@
           position: new AMap.LngLat(r.longitude, r.latitude),
           title: r.name
         });
+
         marker.on('click', function() {
           const infoWindow = new AMap.InfoWindow({
             content: createInfoContent(r),
@@ -344,12 +384,17 @@
             }
           }, 100);
         });
+
         map.add(marker);
         markers.push(marker);
       });
     }
 
     function createInfoContent(r) {
+      let badgeClass = 'badge-selected';
+      if (r.typeText === '米其林一星') badgeClass = 'badge-star-1';
+      else if (r.typeText === '必比登推介') badgeClass = 'badge-bibendum';
+
       return `<div class="info-window">
         <div class="info-window-header">
           <img src="${r.image}" alt="${r.name}">
@@ -358,13 +403,12 @@
           <div class="info-window-title">${r.name}</div>
           <div class="info-window-subtitle">${r.nameEn}</div>
           <div class="info-window-badges">
-            <span class="info-badge badge-star${r.star < 3 ? '-' + r.star : ''}">${r.star}星米其林</span>
+            <span class="info-badge ${badgeClass}">${r.typeText}</span>
             <span class="info-badge badge-city">${r.city}</span>
             <span class="info-badge badge-type">${r.type}</span>
           </div>
           <div class="info-window-row"><strong>地址：</strong><span class="address-link">${r.address}</span></div>
-          <div class="info-window-row"><strong>电话：</strong>${r.phone}</div>
-          <div class="info-window-row"><strong>营业：</strong>${r.hours}</div>
+          <div class="info-window-row"><strong>菜系：</strong>${r.type}</div>
           <div class="info-window-row"><strong>消费：</strong>${r.price}</div>
           <div class="info-window-actions">
             <a class="info-window-btn info-window-btn-secondary" href="tel:${r.phone}">📞 拨打</a>
